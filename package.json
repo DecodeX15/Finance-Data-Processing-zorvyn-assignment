@@ -1,0 +1,26 @@
+{
+  "name": "financial-service-management",
+  "version": "1.0.0",
+  "description": "Finance Data Processing and Access Control Backend",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "nodemon index.js",
+    "format": "prettier --write ."
+  },
+  "author": "Vaibhav Aryan",
+  "license": "ISC",
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.0",
+    "express": "^5.2.1",
+    "joi": "^18.1.2",
+    "jsonwebtoken": "^9.0.3",
+    "mongoose": "^9.3.3"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14",
+    "prettier": "^3.8.1"
+  }
+}
