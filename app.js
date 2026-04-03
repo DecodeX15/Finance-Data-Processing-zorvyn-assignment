@@ -21,5 +21,7 @@ app.use(
   }),
 );
 import userrouter from "./src/routes/user.route.js";
-app.use('/api/zorkyn/v1/user',userrouter);
+app.use("/api/zorkyn/v1/user", userrouter);
+import transaction_router from "./src/routes/transaction.route.js";
+app.use("/api/zorkyn/v1/transaction", transaction_router);
 export default app;

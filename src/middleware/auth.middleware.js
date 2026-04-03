@@ -22,21 +22,28 @@ const auth_middleware = async (req, res, next) => {
       process.env.Authentication_for_jsonwebtoken,
     );
     console.log(decoded);
-    const user = await User.findById(decoded._id).select("-password").lean();
+    const user = await User.findById(decoded.id).select("-password").lean();
     if (!user) {
       return res.status(401).json(ApiResponse.error(`User not found`, 401));
+    }
+    if(user.isactive === false){
+      return res.status(403).json(ApiResponse.error(`User account is deactivated, please contact an administrator`, 403));
     }
     req.user = user;
     next();
   } catch (error) {
+    console.log(error);
+    if (error.name === "JsonWebTokenError") {
+      return res.status(401).json(ApiResponse.error("Invalid token", 401));
+    }
+    if (error.name === "TokenExpiredError") {
+      return res
+        .status(401)
+        .json(ApiResponse.error("Token has expired, please login again", 401));
+    }
     return res
       .status(500)
-      .json(
-        ApiResponse.error(
-          `Internal server error in auth middleware: ${error.message}`,
-          500,
-        ),
-      );
+      .json(ApiResponse.error(`Internal server error: ${error.message}`, 500));
   }
 };
 

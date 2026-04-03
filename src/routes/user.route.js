@@ -7,5 +7,4 @@ import {
 const userrouter = Router();
 userrouter.post("/create", validatecreateuser, create_user);
 userrouter.post("/login", validateloginuser, login_user);
-
 export default userrouter;

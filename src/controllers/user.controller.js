@@ -16,7 +16,7 @@ const create_user = async (req, res) => {
       name,
       email,
       hashedPassword: hashPassword,
-      role: "Admin",
+      role: "Viewer",
       isactive: true,
     });
     if (!new_user) {

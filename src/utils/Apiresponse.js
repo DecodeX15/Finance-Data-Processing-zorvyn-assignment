@@ -10,10 +10,7 @@ class ApiResponse {
     return new ApiResponse(statusCode, data, message);
   }
 
-  static error(
-    message = "Something went wrong",
-    statusCode = 500,
-  ) {
+  static error(message = "Something went wrong", statusCode = 500) {
     return {
       success: false,
       statusCode,

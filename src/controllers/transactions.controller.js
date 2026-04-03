@@ -1,5 +1,5 @@
-import Transaction from "../models/transaction.model";
-import ApiResponse from "../utils/Apiresponse";
+import Transaction from "../models/transaction.model.js";
+import ApiResponse from "../utils/Apiresponse.js";
 const create_transaction = async (req, res) => {
   const { amount, type, category, title, description } = req.body;
   try {
@@ -9,7 +9,7 @@ const create_transaction = async (req, res) => {
       title: title || "",
       category,
       description: description || "",
-      createdBy: req.user.id,
+      createdBy: req.user._id,
     });
     return res
       .status(201)
@@ -99,13 +99,19 @@ const update_transaction = async (req, res) => {
       },
       { new: true },
     );
-    if(!updatedtrans){
-        return res.status(404).json(ApiResponse.error("Transaction not found", 404));
+    if (!updatedtrans) {
+      return res
+        .status(404)
+        .json(ApiResponse.error("Transaction not found", 404));
     }
     return res
       .status(200)
       .json(
-        ApiResponse.success(updatedtrans, "Transaction updated successfully", 200),
+        ApiResponse.success(
+          updatedtrans,
+          "Transaction updated successfully",
+          200,
+        ),
       );
   } catch (error) {
     return res
@@ -131,7 +137,11 @@ const delete_transaction = async (req, res) => {
     return res
       .status(200)
       .json(
-        ApiResponse.success(deletedtrans, "Transaction deleted successfully", 200),
+        ApiResponse.success(
+          deletedtrans,
+          "Transaction deleted successfully",
+          200,
+        ),
       );
   } catch (error) {
     return res
@@ -145,11 +155,69 @@ const delete_transaction = async (req, res) => {
   }
 };
 
-// now we have to work on the Filtering records based on criteria such as date, category, or type
+const dashboard_summary = async (req, res) => {
+  // console.log(req.user)
+  try {
+    const totals = await Transaction.aggregate([
+      { $match: { createdBy: req.user._id } },
+      {
+        $group: {
+          _id: "$type",
+          total: { $sum: "$amount" },
+        },
+      },
+    ]);
+    console.log(totals);
+    const categorywise = await Transaction.aggregate([
+      { $match: { createdBy: req.user._id } },
+      {
+        $group: {
+          _id: "$category",
+          total: { $sum: "$amount" },
+        },
+      },
+    ]);
+    const recent = await Transaction.find({ createdBy: req.user._id })
+      .sort({ createdAt: -1 })
+      .limit(5)
+      .lean();
+    const monthly = await Transaction.aggregate([
+      { $match: { createdBy: req.user._id } },
+      {
+        $group: {
+          _id: {
+            month: { $month: "$createdAt" },
+            type: "$type",
+          },
+          total: { $sum: "$amount" },
+        },
+      },
+    ]);
+    return res
+      .status(200)
+      .json(
+        ApiResponse.success(
+          { totals, categorywise, recent, monthly },
+          "Dashboard summary fetched successfully",
+          200,
+        ),
+      );
+  } catch (error) {
+    return res
+      .status(500)
+      .json(
+        ApiResponse.error(
+          `Internal server error in fetching dashboard summary: ${error.message}`,
+          500,
+        ),
+      );
+  }
+};
 export {
   create_transaction,
   get_all_transactions,
   get_transaction_by_id,
   update_transaction,
   delete_transaction,
+  dashboard_summary,
 };
