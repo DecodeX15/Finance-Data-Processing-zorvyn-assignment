@@ -26,8 +26,15 @@ const auth_middleware = async (req, res, next) => {
     if (!user) {
       return res.status(401).json(ApiResponse.error(`User not found`, 401));
     }
-    if(user.isactive === false){
-      return res.status(403).json(ApiResponse.error(`User account is deactivated, please contact an administrator`, 403));
+    if (user.isactive === false) {
+      return res
+        .status(403)
+        .json(
+          ApiResponse.error(
+            `User account is deactivated, please contact an administrator`,
+            403,
+          ),
+        );
     }
     req.user = user;
     next();

@@ -59,9 +59,9 @@ const login_user = async (req, res) => {
     const user = await User.findOne({ email });
     if (!user) {
       return res
-        .status(404)
+        .status(401)
         .json(
-          ApiResponse.error("User does not exist, please register first", 404),
+          ApiResponse.error("User does not exist, please register first", 401),
         );
     }
     if (!user.isactive) {
@@ -110,4 +110,102 @@ const login_user = async (req, res) => {
       );
   }
 };
-export { create_user, login_user };
+const change_user_role = async (req, res) => {
+  try {
+    const { newrole, user_id } = req.body;
+    if (!newrole) {
+      return res
+        .status(400)
+        .json(ApiResponse.error("please provide new role", 400));
+    }
+    console.log(req.user._id);
+    console.log(user_id);
+    if (user_id === req.user._id.toString()) {
+      return res
+        .status(403)
+        .json(ApiResponse.error("You cannot change your own role", 403));
+    }
+    const user = await User.findById(user_id);
+    if (!user) {
+      return res.status(404).json(ApiResponse.error("User not found", 404));
+    }
+    user.role = newrole;
+    await user.save();
+    return res
+      .status(200)
+      .json(ApiResponse.success(user, "User role updated successfully", 200));
+  } catch (error) {
+    return res
+      .status(500)
+      .json(
+        ApiResponse.error(
+          `Internal server error in changing user role: ${error.message}`,
+          500,
+        ),
+      );
+  }
+};
+const change_user_status = async (req, res) => {
+  try {
+    const { user_id } = req.body;
+    if (user_id === req.user._id.toString()) {
+      return res
+        .status(403)
+        .json(ApiResponse.error("You cannot change your own status", 403));
+    }
+    const user = await User.findById(user_id);
+    if (!user) {
+      return res.status(404).json(ApiResponse.error("User not found", 404));
+    }
+    user.isactive = !user.isactive;
+    await user.save();
+    return res
+      .status(200)
+      .json(
+        ApiResponse.success(
+          user,
+          `User account has been ${user.isactive ? "activated" : "deactivated"} successfully`,
+          200,
+        ),
+      );
+  } catch (error) {
+    return res
+      .status(500)
+      .json(
+        ApiResponse.error(
+          `Internal server error in changing user status: ${error.message}`,
+          500,
+        ),
+      );
+  }
+};
+
+const get_all_users = async (req, res) => {
+  try {
+    const allusers = await User.find();
+    if (!allusers) {
+      return res.status(200).json(ApiResponse.error("No users found", 200));
+    }
+    return res
+      .status(200)
+      .json(
+        ApiResponse.success(allusers, "All users retrieved successfully", 200),
+      );
+  } catch (error) {
+    return res
+      .status(500)
+      .json(
+        ApiResponse.error(
+          `Internal server error in retrieving all users: ${error.message}`,
+          500,
+        ),
+      );
+  }
+};
+export {
+  create_user,
+  login_user,
+  change_user_role,
+  change_user_status,
+  get_all_users,
+};

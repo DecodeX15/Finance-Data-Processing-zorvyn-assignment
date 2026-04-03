@@ -30,23 +30,57 @@ const create_transaction = async (req, res) => {
 
 const get_all_transactions = async (req, res) => {
   try {
-    const alltrans = await Transaction.find().sort({ createdAt: -1 });
-    if (alltrans.length === 0) {
-      return res
-        .status(404)
-        .json(ApiResponse.error("No transactions found", 404));
+    const {
+      type,
+      category,
+      startDate,
+      endDate,
+      search,
+      page = 1,
+      limit = 10,
+    } = req.query;
+
+    const filter = {};
+
+    if (type) filter.type = type;
+    if (category) filter.category = category;
+
+    if (startDate || endDate) {
+      filter.createdAt = {};
+      if (startDate) filter.createdAt.$gte = new Date(startDate);
+      if (endDate) filter.createdAt.$lte = new Date(endDate);
     }
+
+    if (search) {
+      filter.$or = [
+        { title: { $regex: search, $options: "i" } },
+        { description: { $regex: search, $options: "i" } },
+      ];
+    }
+    console.log(filter);
+    const skip = (page - 1) * limit;
+
+    const transactions = await Transaction.find(filter)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(Number(limit))
+      .lean();
+
     return res
       .status(200)
       .json(
-        ApiResponse.success(alltrans, "Transactions fetched successfully", 200),
+        ApiResponse.success(
+          transactions,
+          "Transactions fetched successfully",
+          200,
+        ),
       );
   } catch (error) {
     return res
       .status(500)
       .json(
         ApiResponse.error(
-          `Internal server error in fetching all transactions: ${error.message}`,
+          `Internal server error in fetching transactions: ${error.message}`,
           500,
         ),
       );
@@ -193,6 +227,16 @@ const dashboard_summary = async (req, res) => {
         },
       },
     ]);
+    if (totals.length === 0) {
+      return res
+        .status(200)
+        .json(
+          ApiResponse.success(
+            "No transactions found for dashboard summary",
+            200,
+          ),
+        );
+    }
     return res
       .status(200)
       .json(
@@ -213,6 +257,7 @@ const dashboard_summary = async (req, res) => {
       );
   }
 };
+
 export {
   create_transaction,
   get_all_transactions,

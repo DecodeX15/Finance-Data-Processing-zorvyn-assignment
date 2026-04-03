@@ -25,11 +25,11 @@ const validatecreateuser = (req, res, next) => {
     next();
   } catch (error) {
     return res
-      .status(400)
+      .status(500)
       .json(
         ApiResponse.error(
           `Internal server error in create user validation error: ${error.message}`,
-          400,
+          500,
         ),
       );
   }
