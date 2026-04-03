@@ -121,11 +121,12 @@ const get_transaction_by_id = async (req, res) => {
 const update_transaction = async (req, res) => {
   try {
     const { id } = req.params;
-    const { amount, type, category, title, description } = req.params;
+    const { amount, type, category, title, description } = req.body;
+
     const updatedtrans = await Transaction.findByIdAndUpdate(
       id,
       {
-        ...(amount && { amount }),
+        ...(amount !== undefined && { amount }),
         ...(type && { type }),
         ...(category && { category }),
         ...(title && { title }),
@@ -133,11 +134,13 @@ const update_transaction = async (req, res) => {
       },
       { new: true },
     );
+
     if (!updatedtrans) {
       return res
         .status(404)
         .json(ApiResponse.error("Transaction not found", 404));
     }
+
     return res
       .status(200)
       .json(
