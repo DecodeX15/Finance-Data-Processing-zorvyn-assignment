@@ -15,9 +15,18 @@ const transactionSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    title: {
+      type: String,
+      trim: true,
+    },
     description: {
       type: String,
       trim: true,
+    },
+    createdBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
     },
   },
   {
@@ -26,6 +35,6 @@ const transactionSchema = new mongoose.Schema(
 );
 const Transaction = mongoose.model("Transaction", transactionSchema);
 transactionSchema.index({ createdAt: -1 });
-// this will help for getting recent transaction in logn time 
+// this will help for getting recent transaction in logn time
 
 export default Transaction;

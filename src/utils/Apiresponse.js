@@ -13,13 +13,11 @@ class ApiResponse {
   static error(
     message = "Something went wrong",
     statusCode = 500,
-    errors = null,
   ) {
     return {
       success: false,
       statusCode,
       message,
-      errors,
     };
   }
 }

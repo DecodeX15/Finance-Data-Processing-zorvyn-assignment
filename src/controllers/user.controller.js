@@ -32,6 +32,12 @@ const create_user = async (req, res) => {
     );
     const data = {
       token: jwttoken,
+      user: {
+        userId: new_user._id,
+        name: new_user.name,
+        email: new_user.email,
+        role: new_user.role,
+      },
     };
     return res
       .status(201)
@@ -39,7 +45,12 @@ const create_user = async (req, res) => {
   } catch (error) {
     return res
       .status(500)
-      .json(ApiResponse.error("Internal server error", 500));
+      .json(
+        ApiResponse.error(
+          `Internal server error in creating user : ${error.message}`,
+          500,
+        ),
+      );
   }
 };
 const login_user = async (req, res) => {
@@ -53,17 +64,36 @@ const login_user = async (req, res) => {
           ApiResponse.error("User does not exist, please register first", 404),
         );
     }
-    const isPasswordCorrect = await bcrypt.compare(password, user.hashedPassword);
+    if (!user.isactive) {
+      return res
+        .status(403)
+        .json(
+          ApiResponse.error(
+            "User account is deactivated, please contact Admin",
+            403,
+          ),
+        );
+    }
+    const isPasswordCorrect = await bcrypt.compare(
+      password,
+      user.hashedPassword,
+    );
     if (!isPasswordCorrect) {
       return res.status(401).json(ApiResponse.error("Invalid password", 401));
     }
     const jwtToken = jwt.sign(
-      { email: user.email, _id: user._id, role: user.role },
+      { email: user.email, id: user._id, role: user.role },
       process.env.Authentication_for_jsonwebtoken,
       { expiresIn: "24h" },
     );
     const data = {
       token: jwtToken,
+      user: {
+        userId: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+      },
     };
     return res
       .status(200)
@@ -72,7 +102,12 @@ const login_user = async (req, res) => {
     console.error("Login error:", error);
     return res
       .status(500)
-      .json(ApiResponse.error(`Error in logging in: ${error.message}`, 500));
+      .json(
+        ApiResponse.error(
+          `Internal server error in logging user: ${error.message}`,
+          500,
+        ),
+      );
   }
 };
 export { create_user, login_user };
